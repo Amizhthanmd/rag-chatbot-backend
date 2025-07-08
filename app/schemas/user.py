@@ -25,5 +25,9 @@ class UserInDB(UserBase):
     email: EmailStr
     is_active: bool
 
+class Login(BaseModel):
+    email: EmailStr
+    password: str
+    
 class Config:
     orm_mode = True

@@ -1,15 +1,19 @@
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
-from controllers import user as crud_user
-from schemas.user import UserInDB, SignUp
+from controllers import auth
+from schemas.user import SignUp, Login
 # from app.dependencies.auth import get_current_user
 from databases.db import get_db
 
 router = APIRouter()
 
-@router.post("/", response_model=UserInDB)
+@router.post("/signup")
 async def sign_up(user: SignUp, db: Session = Depends(get_db)):
-    return crud_user.sign_up(db, user)
+    return auth.sign_up(db, user)
+
+@router.post("/login")
+async def login(user: Login, db: Session = Depends(get_db)):
+    return auth.login(db, user)
 
 # @router.get("/{user_id}", response_model=UserInDB)
 # async def read_user(user_id: int, db: Session = Depends(get_db), current_user: UserInDB = Depends(get_current_user)):

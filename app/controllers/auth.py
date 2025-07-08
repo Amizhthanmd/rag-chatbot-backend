@@ -1,7 +1,7 @@
 from sqlalchemy.orm import Session
 from models.user import User
-from schemas.user import SignUp
-from utils.helpers import hash_password
+from schemas.user import SignUp, Login
+from utils import helpers
 from fastapi import HTTPException
 
 def get_user(db: Session, user_id: int):
@@ -15,7 +15,7 @@ def sign_up(db: Session, user: SignUp):
     if db_user:
         raise HTTPException(status_code=400, detail="Email already registered")
     
-    hashed_password = hash_password(user.password)
+    hashed_password = helpers.hash_password(user.password)
     db_user = User(
         name=user.name,
         email=user.email,
@@ -24,7 +24,25 @@ def sign_up(db: Session, user: SignUp):
     db.add(db_user)
     db.commit()
     db.refresh(db_user)
-    return db_user
+
+    return {"message": "Sign up successful", "Status" : True}
+
+def login(db: Session, user: Login):
+    user_db = get_user_by_email(db, user.email)
+    if not user_db:
+        raise HTTPException(status_code=400, detail="Invalid email")
+    
+    if not helpers.verify_password(user.password, user_db.password):
+        raise HTTPException(status_code=400, detail="Invalid password")
+
+    access_token = helpers.create_access_token(data={
+        "id": user_db.id,
+        "name": user_db.name,
+        "email": user_db.email,
+        "is_active": user_db.is_active,
+    })
+
+    return {"access_token": access_token, "message" : "Login successful", "Status" : True}
 
 # def update_user(db: Session, user_id: int, user_update: UserUpdate):
 #     db_user = get_user(db, user_id)

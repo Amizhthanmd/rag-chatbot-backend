@@ -1,4 +1,8 @@
+from datetime import datetime, timedelta, timezone
+from jose import jwt
 import bcrypt
+
+from config.settings import settings
 
 def hash_password(password: str) -> str:
     password_bytes = password.encode('utf-8')
@@ -9,7 +13,8 @@ def hash_password(password: str) -> str:
 def verify_password(password: str, hashed: str) -> bool:
     return bcrypt.checkpw(password.encode('utf-8'), hashed.encode('utf-8'))
 
-# async def verify_password(password: str, user_id: int, db: Session = Depends(get_db)) -> User
-#     password_hash = password_hash
-#     password_salt = 0.01
-    
+def create_access_token(data: dict):
+    to_encode = data.copy()
+    expire = datetime.now(timezone.utc) + timedelta(hours=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
+    to_encode.update({"exp": expire})
+    return jwt.encode(to_encode, settings.SECRET_KEY, algorithm=settings.ALGORITHM)
